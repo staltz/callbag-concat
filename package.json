@@ -1,0 +1,18 @@
+{
+  "name": "callbag-concat",
+  "version": "1.0.0",
+  "description": "Callbag factory that concatenates data from multiple callbag sources",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/staltz/callbag-concat.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "author": "staltz.com",
+  "license": "MIT",
+  "devDependencies": {
+    "tape": "^4.8.0"
+  }
+}
