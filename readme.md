@@ -13,9 +13,9 @@ const concat = require('callbag-concat');
 
 const source = combine(fromIter([10,20,30]), fromIter(['a','b']));
 
-source(0, iterate(x => console.log(x))); // 10
-                                         // 20
-                                         // 30
-                                         // a
-                                         // b
+iterate(x => console.log(x))(source); // 10
+                                      // 20
+                                      // 30
+                                      // a
+                                      // b
 ```
