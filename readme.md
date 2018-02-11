@@ -11,7 +11,7 @@ const fromIter = require('callbag-from-iter');
 const iterate = require('callbag-iterate');
 const concat = require('callbag-concat');
 
-const source = combine(fromIter([10,20,30]), fromIter(['a','b']));
+const source = concat(fromIter([10,20,30]), fromIter(['a','b']));
 
 iterate(x => console.log(x))(source); // 10
                                       // 20
