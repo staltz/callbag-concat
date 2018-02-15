@@ -1,6 +1,6 @@
 {
   "name": "callbag-concat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Callbag factory that concatenates data from multiple callbag sources",
   "repository": {
     "type": "git",
