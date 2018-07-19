@@ -329,3 +329,53 @@ test('it passes unknown types up & down', t => {
 
   t.end();
 });
+
+test('it propagates source error to sink & doesn\'t subscribe to next source', t => {
+  t.plan(9);
+  const downwardsExpected = [
+    [0, 'function'],
+    [1, 'number'],
+    [1, 'number'],
+    [2, 'string'],
+  ];
+
+  function makeSource() {
+    let limit = 2;
+    let value = 42;
+    const source = (type, data) => {
+      if (type !== 0) return;
+
+      const sink = data;
+
+      const id = setInterval(() => {
+        sink(1, value++);
+
+        if (--limit === 0) {
+          clearInterval(id);
+          sink(2, 'err');
+        }
+      }, 100);
+
+      sink(0, source);
+    };
+    return source;
+  }
+
+  function makeSink(type, data) {
+    let talkback;
+    return (type, data) => {
+      const et = downwardsExpected.shift();
+      t.equals(type, et[0], 'downwards type is expected: ' + et[0]);
+      t.equals(typeof data, et[1], 'downwards data type is expected: ' + et[1]);
+    };
+  }
+
+  const source = concat(makeSource(), makeSource());
+  const sink = makeSink();
+  source(0, sink);
+
+  setTimeout(() => {
+    t.pass('nothing else happens');
+    t.end();
+  }, 700);
+});

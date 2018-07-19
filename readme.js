@@ -47,6 +47,8 @@ const concat = (...sources) => (start, sink) => {
         sourceTalkback = d;
         if (i === 0) sink(0, talkback);
         else sourceTalkback(1);
+      } else if (t === 2 && d) {
+        sink(2, d);
       } else if (t === 2) {
         i++;
         next();
