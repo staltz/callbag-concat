@@ -277,3 +277,55 @@ test('it returns a source that disposes upon upwards END', t => {
     t.end();
   }, 700);
 });
+
+test('it passes unknown types up & down', t => {
+  t.plan(14);
+  const upwardsExpected = [
+    [0, 'function'],
+    [1, 'number'],
+    [11, 'string'],
+    [2, 'undefined'],
+  ];
+  const downwardsExpected = [
+    [0, 'function'],
+    [1, 'number'],
+    [11, 'string'],
+  ];
+
+  function makeSource() {
+    const source = (type, data) => {
+      const e = upwardsExpected.shift();
+      t.equals(type, e[0], 'upwards type is expected: ' + e[0]);
+      t.equals(typeof data, e[1], 'upwards data is expected: ' + e[1]);
+
+      if (type === 0) {
+        const sink = data;
+        sink(0, source);
+        sink(1, 42)
+        sink(11, 'unknown')
+      }
+    };
+    return source;
+  }
+
+  function makeSink(type, data) {
+    let talkback;
+    return (type, data) => {
+      const et = downwardsExpected.shift();
+      t.equals(type, et[0], 'downwards type is expected: ' + et[0]);
+      t.equals(typeof data, et[1], 'downwards data type is expected: ' + et[1]);
+      if (type === 0) {
+        talkback = data;
+        talkback(1, 57);
+        talkback(11, 'unknown');
+        talkback(2);
+      }
+    };
+  }
+
+  const source = concat(makeSource());
+  const sink = makeSink();
+  source(0, sink);
+
+  t.end();
+});
