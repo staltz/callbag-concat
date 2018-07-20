@@ -57,4 +57,4 @@ const concat = (...sources) => (start, sink) => {
   })();
 };
 
-module.exports = concat;
+export default concat;

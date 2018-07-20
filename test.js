@@ -1,5 +1,5 @@
 const test = require('tape');
-const concat = require('./readme');
+const concat = require('.');
 
 test('it concats 1 async finite listenable source', t => {
   t.plan(14);
