@@ -112,7 +112,7 @@ test('it concats 2 async finite listenable sources', t => {
   }, 1200);
 });
 
-test('it concats 2 async finite pullable sources', t => {
+test('it concats 2 sync finite pullable sources', t => {
   t.plan(30);
 
   const upwardsExpectedA = [1, 1,1,1];
