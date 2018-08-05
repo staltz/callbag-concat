@@ -34,7 +34,9 @@ const concat = (...sources) => (start, sink) => {
   }
   let i = 0;
   let sourceTalkback;
+  let lastPull;
   const talkback = (t, d) => {
+    if (t === 1) lastPull = d;
     sourceTalkback(t, d);
   };
   (function next() {
@@ -46,7 +48,7 @@ const concat = (...sources) => (start, sink) => {
       if (t === 0) {
         sourceTalkback = d;
         if (i === 0) sink(0, talkback);
-        else sourceTalkback(1);
+        else sourceTalkback(1, lastPull);
       } else if (t === 2 && d) {
         sink(2, d);
       } else if (t === 2) {

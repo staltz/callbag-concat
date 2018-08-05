@@ -379,3 +379,101 @@ test('it propagates source error to sink & doesn\'t subscribe to next source', t
     t.end();
   }, 700);
 });
+
+test('it reuses latest pull when subscribing to next source', t => {
+  t.plan(30);
+
+  const upwardsExpectedTypeA = [
+    [1, 'string'],
+    [1, 'string'],
+    [1, 'string'],
+    [1, 'string'],
+  ];
+  const upwardsExpectedTypeB = [
+    [1, 'string'],
+    [1, 'string'],
+    [1, 'string'],
+  ];
+
+  const upwardsEmits = ['foo', 'bar', 'baz', 'orange', 'banana'];
+
+  const downwardsExpectedType = [
+    [0, 'function'],
+    [1, 'string'],
+    [1, 'string'],
+    [1, 'string'],
+    [1, 'string'],
+    [1, 'string'],
+    [2, 'undefined'],
+  ];
+  const downwardsExpected = ['foo_1', 'bar_1', 'baz_1', 'orange_2', 'banana_2'];
+
+  let sentA = 0;
+  let sinkA;
+  function sourceA(type, data) {
+    if (type === 0) {
+      sinkA = data;
+      sinkA(0, sourceA);
+      return;
+    }
+    if (sentA === 3) {
+      sinkA(2);
+      return;
+    }
+
+    const et = upwardsExpectedTypeA.shift();
+    t.equals(type, et[0], 'upwards A type is expected: ' + et[0]);
+    t.equals(typeof data, et[1], 'upwards A data type is expected: ' + et[1]);
+
+    sentA++;
+    sinkA(1, data + '_1');
+  };
+
+  let sentB = 0;
+  let sinkB;
+  function sourceB(type, data) {
+    if (type === 0) {
+      sinkB = data;
+      data(0, sourceB);
+      return;
+    }
+    if (sentB === 2) {
+      sinkB(2);
+      return;
+    }
+
+    const et = upwardsExpectedTypeB.shift();
+    t.equals(type, et[0], 'upwards B type is expected: ' + et[0]);
+    t.equals(typeof data, et[1], 'upwards B data type is expected: ' + et[1]);
+
+    sentB++;
+    sinkB(1, data + '_2');
+  };
+
+  let talkback;
+  function sink(type, data) {
+    const et = downwardsExpectedType.shift();
+
+    t.equals(type, et[0], 'downwards type is expected: ' + et[0]);
+    t.equals(typeof data, et[1], 'downwards data type is expected: ' + et[1]);
+
+    if (type === 0) {
+      talkback = data;
+      talkback(1, upwardsEmits.shift());
+      return;
+    }
+    if (type === 1) {
+      const e = downwardsExpected.shift();
+      t.deepEquals(data, e, 'downwards data is expected: ' + JSON.stringify(e));
+      talkback(1, upwardsEmits.shift());
+    }
+  }
+
+  const source = concat(sourceA, sourceB);
+  source(0, sink);
+
+  setTimeout(() => {
+    t.pass('nothing else happens');
+    t.end();
+  }, 200);
+});
