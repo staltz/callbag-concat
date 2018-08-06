@@ -477,3 +477,63 @@ test('it reuses latest pull when subscribing to next source', t => {
     t.end();
   }, 200);
 });
+
+test('it reuses latest pull when subscribing to next source only if needed', t => {
+  t.plan(17);
+
+  const downwardsExpectedType = [
+    [0, 'function'],
+    [1, 'string'],
+    [1, 'string'],
+    [1, 'string'],
+    [1, 'string'],
+    [2, 'undefined'],
+  ];
+  const downwardsExpected = ['foo', 'bar', 'baz', 'xyz'];
+
+  function sourceA(type, data) {
+    if (type !== 0) {
+      t.fail('sourceA should not get anything beside the sink');
+      return;
+    }
+    const sink = data;
+    sink(0, sourceA);
+    sink(1, 'foo');
+    sink(1, 'bar');
+    sink(2);
+  };
+
+  function sourceB(type, data) {
+    if (type !== 0) {
+      t.fail('sourceB should not get anything beside the sink');
+      return;
+    }
+    const sink = data;
+    sink(0, sourceB);
+    sink(1, 'baz');
+    sink(1, 'xyz');
+    sink(2);
+  };
+
+  function sink(type, data) {
+    const et = downwardsExpectedType.shift();
+
+    t.equals(type, et[0], 'downwards type is expected: ' + et[0]);
+    t.equals(typeof data, et[1], 'downwards data type is expected: ' + et[1]);
+
+    if (type !== 1) {
+      return;
+    }
+
+    const e = downwardsExpected.shift();
+    t.deepEquals(data, e, 'downwards data is expected: ' + JSON.stringify(e));
+  }
+
+  const source = concat(sourceA, sourceB);
+  source(0, sink);
+
+  setTimeout(() => {
+    t.pass('nothing else happens');
+    t.end();
+  }, 200);
+});
