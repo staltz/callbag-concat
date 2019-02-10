@@ -1,7 +1,5 @@
-import { Source } from 'callbag';
-
-type SourceType<T extends Source<any>> = T extends Source<infer O> ? O : never;
+import { Source, UnwrapSource } from 'callbag';
 
 export default function concat<T extends Source<any>[]>(
   ...sources: T
-): Source<SourceType<T[number]>>;
+): Source<UnwrapSource<T[number]>>;
